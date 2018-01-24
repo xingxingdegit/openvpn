@@ -1,6 +1,6 @@
 # openvpn
 
-# conf 目录存储了openssl配置文件， 是脚本使用的。  还有openvpn.conf client.conf 是openvpn的服务端与客户端的配置文件例子。
+conf 目录存储了openssl配置文件， 是脚本使用的。  还有openvpn.conf client.conf 是openvpn的服务端与客户端的配置文件例子。
 
 
 
