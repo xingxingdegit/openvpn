@@ -10,7 +10,6 @@
 #./openssl.sh revoke <name> -f    # 注销证书，上面注销失败的话。
 
 
-
 openssl_conf=conf/openssl.cnf
 
 export PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
@@ -19,20 +18,21 @@ export CA_DIR="$(pwd)/CA"                   # CA目录
 export KEY_COUNTRY="CN"                     # 国家
 export KEY_PROVINCE="BJ"                    # 省市
 export KEY_CITY="BJ"                        # 城市
-export KEY_ORG="ATEST"                      # 组织
+export KEY_ORG="atest.pub"                      # 组织
 export KEY_OUNAME="op"                      # 部门名称
 export KEY_EMAIL="op@atest.pub"             # 邮件
-export KEY_COMMONNAME="vpnatest"            # 主机名,没用，在下面还会指定
+export KEY_COMMONNAME="ca.atest.pub"            # 主机名,没用，在下面还会指定
 
 if [ $# -eq 0 ];then
-    echo "Usage: $0 {init <name> | build <name> } | revoke <name> | reinit | dh}"
+    echo "Usage: $0 {init <name> | build <name> [san]} | revoke <name> | reinit | dh}"
+    echo "san is Subject Alternative Name"
 fi
 
 env_pre () {
     if [ ! -d $CA_DIR ]; then
         mkdir -p $CA_DIR || exit 1
     fi
-    
+
     mkdir $CA_DIR/certs && \
     mkdir $CA_DIR/newcerts && \
     mkdir $CA_DIR/private && \
@@ -65,11 +65,23 @@ build_user () {
     mkdir -p $store_path && \
     (umask 077;openssl genrsa -out $store_path/$1.key 2048) && \
     openssl req -config $openssl_conf -new -key $store_path/$1.key -out $store_path/$1.csr && \
-    openssl ca -config $openssl_conf -md sha256 -in $store_path/$1.csr -out $store_path/$1.crt -days 3650 && \
+    if [ "$2" == "san" ];then
+        openssl ca -config $openssl_conf -extensions v3_req -md sha256 -in $store_path/$1.csr -out $store_path/$1.crt -days 3650
+    else
+        openssl ca -config $openssl_conf -md sha256 -in $store_path/$1.csr -out $store_path/$1.crt -days 3650
+    fi && \
     rm -f $store_path/$1.csr && \
     echo -e "\033[32mcreate $1 cert is successful\033[0m" || echo -e "\033[31mcreate $1 cert is failure\033[0m" && \
     cat $CA_DIR/cacert.pem $CA_DIR/crl.pem > $CA_DIR/revoke-test.pem && \
     openssl verify -CAfile $CA_DIR/revoke-test.pem -crl_check $store_path/$1.crt
+
+    userdir=usertmp/$1
+    mkdir -p $userdir
+    cp $store_path/$1.crt $userdir/
+    cp $store_path/$1.key $userdir/
+    cp $CA_DIR/cacert.pem $userdir/
+    cd usertmp && tar -cf $1.tar $1 && rm -rf $1 && echo "wget http://172.100.102.77/k8s/$1.tar"
+    
 }
 
 
@@ -109,7 +121,7 @@ build_dh () {
     echo -e "\033[32mcreate dh pem is successful\033[0m" || \
     echo -e "\033[31mcreate dh pem is failure\033[0m"
 }
- 
+
 
 case $1 in
     init)
@@ -124,7 +136,7 @@ case $1 in
     build)
         if [ -n "$2" ];then
             export KEY_COMMONNAME=$2
-            build_user $2
+            build_user $2 $3
         else
             echo "Usage: $0 {init <name> | build <name> } | revoke <name> | reinit | dh}"
         fi
@@ -140,6 +152,5 @@ case $1 in
 
     dh)
         build_dh  ;;
-        
-esac
 
+esac

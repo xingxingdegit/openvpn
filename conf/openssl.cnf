@@ -84,7 +84,8 @@ policy		= policy_match
 [ policy_match ]
 countryName		= match
 stateOrProvinceName	= match
-organizationName	= match
+#organizationName	= match
+organizationName	= supplied
 organizationalUnitName	= optional
 commonName		= supplied
 emailAddress		= optional
@@ -220,11 +221,20 @@ authorityKeyIdentifier=keyid,issuer
 # extendedKeyUsage = critical,timeStamping
 
 [ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+#subjectAltName = DNS.1:kubernetes, DNS.2:kubernetes.default, IP.1:172.100.102.80, IP.2:172.100.102.90
+
+[ alt_names ]
+DNS.1 = kubernetes
+DNS.2 = kubernetes.default
+IP.1 = 172.100.102.80
+IP.2 = 172.100.102.90
+IP.3 = 10.0.0.1
 
 # Extensions to add to a certificate request
 
-basicConstraints = CA:FALSE
-keyUsage = nonRepudiation, digitalSignature, keyEncipherment
 
 [ v3_ca ]
 
@@ -353,3 +363,4 @@ tsa_name		= yes	# Must the TSA name be included in the reply?
 				# (optional, default: no)
 ess_cert_id_chain	= no	# Must the ESS cert id chain be included?
 				# (optional, default: no)
+
