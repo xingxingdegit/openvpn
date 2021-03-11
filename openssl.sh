@@ -18,9 +18,9 @@ export CA_DIR="$(pwd)/CA"                   # CA目录
 export KEY_COUNTRY="CN"                     # 国家
 export KEY_PROVINCE="BJ"                    # 省市
 export KEY_CITY="BJ"                        # 城市
-export KEY_ORG="qfpay.com"                      # 组织
+export KEY_ORG="atest.pub"                      # 组织
 export KEY_OUNAME="op"                      # 部门名称
-export KEY_EMAIL="op@qfpay.com"             # 邮件
+export KEY_EMAIL="op@atest.pub"             # 邮件
 export KEY_COMMONNAME="vpnserver"            # 主机名,没用，在下面还会指定
 
 # CA证书有效期，crl证书有效期，用户证书有效期
